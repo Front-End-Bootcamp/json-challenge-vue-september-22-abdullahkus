@@ -1,41 +1,65 @@
-import data from "../data.json"; // data çekildi.
+import studentData from "../data.json"; // data çekildi.
 
-let formatedStudents = {}; // Formatladığım objeye global erişim sağlamak için tanımlandı.
+// Belirtilen grubu getirir.
+function getGroup(groupName) {
+	// Grup ismi kontrolü
+	const isGroup = studentData.find((student) => student.group === groupName)
+	if (!isGroup) {
+		console.log(`The group name specified as "${groupName}" could not be found.`)
+		// Eğer grup ismi yoksa boş döndürür.
+		return null;
+	}
 
-function getGroups() {
-	const students = data.filter((student) => student.type === null); // Gelen data'daki öğrencileristudents'e atandı.
-	const assistant = data.filter((student) => student.type !== null); // Gelen data'daki asistanlar assistant'a atandı.
+	// İlgili gruba üye olanlar bulundu.
+	const filteredStudents = studentData.filter((student) => student.group === groupName)
+	// İlgili gruba üye olan asistan bulundu.
+	const assistant = filteredStudents.find((student) => student.type === "assistant")
+	// Asistanın index numarası bulundu ve asistan, öğrencilerden silindi.
+	let assistantIndex = filteredStudents.indexOf(assistant)
+	filteredStudents.splice(assistantIndex, assistantIndex)
 
-	assistant.map((assistant) => {
-		// Her grupda asistan için dizi gönderilmediğinden dolayı sadece tek asistan olabilir olarak anladım ve asistanları tek tek gezerek grup isimleri dinamik olarak elde etmek için map'lendi.
-		if (!formatedStudents[assistant.group]) {
-			// Grup daha önce oluşturuldu mu diye kontrol edildi.
-			formatedStudents = {
-				...formatedStudents, // Obje'nin şuanki halini aldı.
-				[assistant.group]: {
-					// Obje içerisine grup adında bir obje oluşturuldu.
-					students: [],
-					assistant: assistant.name, // asistan atandı.
-				},
-			};
+	// Öğrenciler tek tek dolaşılarak öğrecilerin isimleri students dizisine aktarıldı.
+	const students = []
+	filteredStudents.forEach(function (student) {
+		students.push(student.name)
+	})
+
+	// Geri dönüş için obje formatlandı.
+	const formatedGroup = {
+		[groupName]: {
+			students: students,
+			assistant: assistant.name
 		}
+	}
 
-		// Öğrencilerin grubuyla eşleşenler filtelendi.
-		const filteredStudents = students.filter(
-			(student) => student.group === assistant.group
-		);
-
-		// Filterelen öğrencilerin isimleri grubun öğrencilerine atandı.ßß
-		filteredStudents.map((student) => {
-			formatedStudents[assistant.group].students.push(student.name);
-		});
-	});
-	console.log(formatedStudents);
+	console.log(formatedGroup)
+	return formatedGroup
 }
 
-function filterByGroupName(groupName) {
-	console.log(formatedStudents[groupName]); // Gönderilen grup ismini formatlanan öğrenci objesinde aranarak ilgili veriye erişildi.
+// Tüm grupları getirir.
+function getGroups() {
+	let groups = []
+	// Grup isimlerini depolayacağım bir set oluşturuyorum.
+	const groupNames = new Set()
+
+	// Data'ı gezerek group.name'i groups isimli Set'e aktarıyorum. (Set'i kullanmamım sebebi, içideki veri kümelerinin benzersiz olmasıdır.)
+	studentData.forEach(function (element) {
+		groupNames.add(element.group)
+	})
+
+	// Grup isimleri tek tek dolaşılır.
+	groupNames.forEach(function (groupName) {
+		// Grup bilgileri için getGroup çalıştırılır.
+		const group = getGroup(groupName)
+		// Önceki verilere gelen grubun bilgileri eklenir.
+		groups = [
+			...groups,
+			group
+		]
+	})
+	console.log(groups)
+	return groups
 }
 
-getGroups();
-filterByGroupName("SteelBlue");
+getGroup("SteelBlue")
+// getGroups();
